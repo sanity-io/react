@@ -20,7 +20,7 @@ const $empty = Symbol.for('react.memo_cache_sentinel');
 
 // Re-export React.c if present, otherwise fallback to the userspace polyfill for versions of React
 // < 19.
-export const c =
+const c =
   // @ts-expect-error
   typeof React.__COMPILER_RUNTIME?.c === 'function'
     ? // @ts-expect-error
@@ -38,6 +38,7 @@ export const c =
           return $;
         }, []);
       };
+exports.c = c;
 
 const LazyGuardDispatcher: {[key: string]: (...args: Array<any>) => any} = {};
 [
@@ -133,7 +134,7 @@ const guardFrames: Array<unknown> = [];
  * }
  * ```
  */
-export function $dispatcherGuard(kind: GuardKind) {
+function $dispatcherGuard(kind: GuardKind) {
   const curr = ReactSecretInternals.ReactCurrentDispatcher.current;
   if (kind === GuardKind.PushGuardContext) {
     // Push before checking invariant or errors
@@ -182,31 +183,33 @@ export function $dispatcherGuard(kind: GuardKind) {
     throw new Error('React Compiler internal error: unreachable block' + kind);
   }
 }
+exports.$dispatcherGuard = $dispatcherGuard;
 
-export function $reset($: MemoCache) {
+function $reset($: MemoCache) {
   for (let ii = 0; ii < $.length; ii++) {
     $[ii] = $empty;
   }
 }
+exports.$reset = $reset;
 
-export function $makeReadOnly() {
+function $makeReadOnly() {
   throw new Error('TODO: implement $makeReadOnly in react-compiler-runtime');
 }
+exports.$makeReadOnly = $makeReadOnly;
 
 /**
  * Instrumentation to count rerenders in React components
  */
-export const renderCounterRegistry: Map<
-  string,
-  Set<{count: number}>
-> = new Map();
-export function clearRenderCounterRegistry() {
+const renderCounterRegistry: Map<string, Set<{count: number}>> = new Map();
+exports.renderCounterRegistry = renderCounterRegistry;
+function clearRenderCounterRegistry() {
   for (const counters of renderCounterRegistry.values()) {
     counters.forEach(counter => {
       counter.count = 0;
     });
   }
 }
+exports.clearRenderCounterRegistry = clearRenderCounterRegistry;
 
 function registerRenderCounter(name: string, val: {count: number}) {
   let counters = renderCounterRegistry.get(name);
@@ -225,7 +228,7 @@ function removeRenderCounter(name: string, val: {count: number}): void {
   counters.delete(val);
 }
 
-export function useRenderCounter(name: string): void {
+function useRenderCounter(name: string): void {
   const val = useRef<{count: number}>(null);
 
   if (val.current != null) {
@@ -246,10 +249,11 @@ export function useRenderCounter(name: string): void {
     };
   });
 }
+exports.useRenderCounter = useRenderCounter;
 
 const seenErrors = new Set();
 
-export function $structuralCheck(
+function $structuralCheck(
   oldValue: any,
   newValue: any,
   variableName: string,
@@ -415,3 +419,4 @@ export function $structuralCheck(
   }
   recur(oldValue, newValue, '', 0);
 }
+exports.$structuralCheck = $structuralCheck;
